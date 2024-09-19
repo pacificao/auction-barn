@@ -2,6 +2,8 @@
 /***************************************************************************
  *   copyright              : (C) 2008 - 2017 WeBid
  *   site                   : http://www.webidsupport.com/
+ *   (C) 2024 Barnealogy, a division of Pacific Animal & Outdoor
+ *   website                : https://barnealogy.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -19,24 +21,24 @@ $w = (isset($_GET['w'])) ? intval($_GET['w']) : '';
 $fromfile = $_GET['fromfile'];
 $auction_id = $_GET['auction_id'];
 
-// check passed values
-if (!isset($_GET['fromfile']) ||
-	!isset($_GET['auction_id']) || !is_numeric($auction_id)) {
-    ErrorPNG($ERR_716);
-    exit;
-} elseif (!file_exists($_GET['fromfile']) && !fopen($_GET['fromfile'], 'r')) {
-    ErrorPNG($ERR_716);
-    exit;
+// Construct the file path early on
+if ($fromfile != '') {
+    // clean fromfile
+    $fromfile = basename($fromfile);
+    // build file path
+    $file_path = UPLOAD_FOLDER . $auction_id . '/' . $fromfile;
+} else {
+    // if empty filename just show default image
+    $file_path = MAIN_PATH . 'images/email_alerts/default_item_img.jpg';
 }
 
-if ($fromfile != '') {
-	// clean fromfile
-	$fromfile = basename($fromfile);
-	// build file path
-	$file_path = UPLOAD_FOLDER . $auction_id . '/' . $fromfile;
-} else {
-	// if empty filename just show default image
-	$file_path = MAIN_PATH . 'images/email_alerts/default_item_img.jpg';
+// check passed values
+if (!isset($_GET['fromfile']) || !isset($_GET['auction_id']) || !is_numeric($auction_id)) {
+    ErrorPNG($ERR_716);
+    exit;
+} elseif (!file_exists($file_path) && !fopen($file_path, 'r')) {
+    ErrorPNG($ERR_716);
+    exit;
 }
 
 $nomanage = false;
@@ -73,7 +75,7 @@ if (file_exists(UPLOAD_PATH . 'cache/' . $w . '-' . md5($fromfile))) {
     $img = getimagesize($file_path);
     switch ($img[2]) {
         case IMAGETYPE_GIF:
-            if (!(imagetypes() &IMG_GIF)) {
+            if (!(imagetypes() & IMG_GIF)) {
                 if (!function_exists('imagecreatefromgif')) {
                     $nomanage = true;
                 } else {
@@ -84,13 +86,13 @@ if (file_exists(UPLOAD_PATH . 'cache/' . $w . '-' . md5($fromfile))) {
             }
             break;
         case IMAGETYPE_JPEG:
-            if (!(imagetypes() &IMG_JPG)) {
+            if (!(imagetypes() & IMG_JPG)) {
                 $nomanage = true;
             }
             $img['mime'] = 'image/jpeg';
             break;
         case IMAGETYPE_PNG:
-            if (!(imagetypes() &IMG_PNG)) {
+            if (!(imagetypes() & IMG_PNG)) {
                 $nomanage = true;
             }
             $img['mime'] = 'image/png';
@@ -115,7 +117,7 @@ if (file_exists(UPLOAD_PATH . 'cache/' . $w . '-' . md5($fromfile))) {
         if (is_array($img)) {
             switch ($img[2]) {
                 case IMAGETYPE_GIF:
-                    if (!(imagetypes() &IMG_GIF)) {
+                    if (!(imagetypes() & IMG_GIF)) {
                         if (!function_exists('imagecreatefromgif')) {
                             $nomanage = true;
                         } else {
@@ -129,7 +131,7 @@ if (file_exists(UPLOAD_PATH . 'cache/' . $w . '-' . md5($fromfile))) {
                     $image_type = 'gif';
                     break;
                 case IMAGETYPE_JPEG:
-                    if (!(imagetypes() &IMG_JPG)) {
+                    if (!(imagetypes() & IMG_JPG)) {
                         $nomanage = true;
                     }
                     $output_type = 'jpeg';
@@ -137,7 +139,7 @@ if (file_exists(UPLOAD_PATH . 'cache/' . $w . '-' . md5($fromfile))) {
                     $image_type = 'jpeg';
                     break;
                 case IMAGETYPE_PNG:
-                    if (!(imagetypes() &IMG_PNG)) {
+                    if (!(imagetypes() & IMG_PNG)) {
                         $nomanage = true;
                     }
                     $image_type = 'png';
